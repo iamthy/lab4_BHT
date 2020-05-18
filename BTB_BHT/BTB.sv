@@ -16,7 +16,7 @@ module BTB #(
     input  wire jmp_EX,              // EX段预测是否跳转
 
     output wire find,                // 是否有对应的条目
-    output wire [31:0] NPC_Pred,    // 预测跳转的NPC
+    output wire [31:0] NPC_Pred,     // 预测跳转的NPC
     output wire jmp,                 // 预测是否跳转
     output wire fail                 // 当前处在EX段的分支指令是否预测失败
 );
@@ -26,6 +26,7 @@ localparam BTB_SIZE = 1 << TAG_ADDR_LEN; // BTB的大小
 reg [31:0] Br_PC [BTB_SIZE-1:0];   // 分支指令的地址
 reg [31:0] Pred_PC [BTB_SIZE-1:0]; // 分支预测的跳转地址
 reg State [BTB_SIZE-1:0];          // 预测分支是否跳转,1跳转,0不跳转
+wire BHT_jmp;                      // BHT作出的预测
 
 wire [TAG_ADDR_LEN-1:0] tag_addr,EX_tag_addr;
 assign tag_addr = PC_IF[TAG_ADDR_LEN+1:2];    
@@ -33,7 +34,7 @@ assign EX_tag_addr = PC_EX[TAG_ADDR_LEN+1:2];
 // 使用直接相联的方式，取除了最低两位以外最低的TAG_ADDR位作为tag直接到对应下标的条目中取
 assign find = (PC_IF == Br_PC[tag_addr]); 
 //根据tag_addr找到的对应条目指令地址与当前的PC_IF相同就说明存在，否则不存在
-assign jmp = find & State[tag_addr];   // 有对应条目并且预测跳转才输出跳转信号
+assign jmp = find & State[tag_addr] & BHT_jmp;   // 有对应条目并且BTB&BHT均预测跳转才输出跳转信号
 assign NPC_Pred = jmp ? Pred_PC[tag_addr] : PC_IF+4;   
 // 给出预测跳转目标地址,预测跳转就返回预测的地址，否则返回PC+4
 assign fail = (!find_EX && br_EX) || //预测失败的情况有：BTB表没有找到但是EX段跳转了
@@ -110,4 +111,14 @@ begin
         end
     end
 end
+
+BHT BHT1(
+    .clk(clk),
+    .rst(rst),
+    .PC_IF(PC_IF),
+    .is_br_EX(is_br_EX),
+    .br_EX(br_EX),
+    .PC_EX(PC_EX),
+    .jmp(BHT_jmp)
+);
 endmodule
