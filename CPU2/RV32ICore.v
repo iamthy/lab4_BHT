@@ -441,6 +441,7 @@ module RV32ICore(
         .br(br),
         .jalr(jalr_EX),
         .jal(jal),
+        .is_br_EX(is_br_EX),
         .src_reg_en(src_reg_en_EX),
         .wb_select(wb_select_EX),
         .reg_write_en_MEM(reg_write_en_MEM),

@@ -34,7 +34,9 @@ assign EX_tag_addr = PC_EX[TAG_ADDR_LEN+1:2];
 // 使用直接相联的方式，取除了最低两位以外最低的TAG_ADDR位作为tag直接到对应下标的条目中取
 assign find = (PC_IF == Br_PC[tag_addr]); 
 //根据tag_addr找到的对应条目指令地址与当前的PC_IF相同就说明存在，否则不存在
-assign jmp = find & State[tag_addr] & BHT_jmp;   // 有对应条目并且BTB&BHT均预测跳转才输出跳转信号
+//assign jmp = find & BHT_jmp;   // 有对应条目并且BTB&BHT均命中才输出跳转信号
+assign jmp = find & State[tag_addr];
+
 assign NPC_Pred = jmp ? Pred_PC[tag_addr] : PC_IF+4;   
 // 给出预测跳转目标地址,预测跳转就返回预测的地址，否则返回PC+4
 assign fail = (!find_EX && br_EX) || //预测失败的情况有：BTB表没有找到但是EX段跳转了

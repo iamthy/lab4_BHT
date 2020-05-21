@@ -51,7 +51,7 @@
 module HarzardUnit(
     input wire clk,rst, miss,
     input wire [4:0] reg1_srcD, reg2_srcD, reg1_srcE, reg2_srcE, reg_dstE, reg_dstM, reg_dstW,
-    input wire br, jalr, jal,
+    input wire br, jalr, jal, is_br_EX,
     input wire [1:0] src_reg_en,
     input wire wb_select,
     input wire reg_write_en_MEM,
@@ -64,6 +64,8 @@ module HarzardUnit(
     );
     reg [31:0] br_cnt; //分支指令执行次数
     reg [31:0] fail_cnt; //预测错误次数
+    wire [31:0] suc_cnt; //预测成功次数
+    assign suc_cnt = br_cnt - fail_cnt;
     always @(posedge clk,posedge rst)
     begin
         if (rst)
@@ -73,7 +75,7 @@ module HarzardUnit(
         end
         else
         begin
-            if (br) br_cnt<=br_cnt+1;
+            if (is_br_EX) br_cnt<=br_cnt+1;
             if (BTB_fail) fail_cnt<=fail_cnt+1;
         end
     end
